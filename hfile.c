@@ -521,15 +521,35 @@ static int fd_flush(hFILE *fpv)
     return ret;
 }
 
+/*static int fd_close(hFILE *fpv)*/
+/*{*/
+    /*hFILE_fd *fp = (hFILE_fd *) fpv;*/
+    /*int ret;*/
+    /*do {*/
+/*#ifdef HAVE_CLOSESOCKET*/
+        /*ret = fp->is_socket? closesocket(fp->fd) : close(fp->fd);*/
+/*#else*/
+        /*ret = close(fp->fd);*/
+/*#endif*/
+    /*} while (ret < 0 && errno == EINTR);*/
+    /*return ret;*/
+/*}*/
 static int fd_close(hFILE *fpv)
 {
     hFILE_fd *fp = (hFILE_fd *) fpv;
     int ret;
     do {
 #ifdef HAVE_CLOSESOCKET
-        ret = fp->is_socket? closesocket(fp->fd) : close(fp->fd);
+       	if (fp->is_socket) ret = closesocket(fp->fd);
+	else 
+		if (fp->fd != STDIN_FILENO && fp->fd != STDOUT_FILENO) ret = close(fp->fd);
+		else 
+			ret = 0;
+	    /*ret = fp->is_socket? closesocket(fp->fd) : close(fp->fd);*/
 #else
-        ret = close(fp->fd);
+	if (fp->fd != STDIN_FILENO && fp->fd != STDOUT_FILENO) ret = close(fp->fd);
+	else  ret = 0;
+	/*ret = close(fp->fd);*/
 #endif
     } while (ret < 0 && errno == EINTR);
     return ret;
